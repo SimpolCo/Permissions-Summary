@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class AppRepository(private val context: Context) {
+
     private val importantPermissions = setOf(
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
@@ -26,41 +27,33 @@ class AppRepository(private val context: Context) {
         "android.permission.POST_NOTIFICATIONS"
     )
 
+    suspend fun getPermissionGroups(filterState: FilterState = FilterState()): List<PermissionGroup> =
+        withContext(Dispatchers.IO) {
+            val apps = getInstalledApps().filterNot { it.packageName in filterState.hiddenApps }
 
-    suspend fun getPermissionGroups(filterState: FilterState = FilterState()): List<PermissionGroup> = withContext(Dispatchers.IO) {
-        val apps = getInstalledApps().filter { app ->
-            app.packageName !in filterState.hiddenApps
-        }
+            val permissionToAppsMap = mutableMapOf<String, MutableList<AppInfo>>()
 
-        val permissionToAppsMap = mutableMapOf<String, MutableList<AppInfo>>()
-
-        // Group apps by permissions
-        apps.forEach { app ->
-            app.permissions.forEach { permission ->
-                if (permission !in filterState.hiddenPermissions) {
-                    permissionToAppsMap.getOrPut(permission) { mutableListOf() }.add(app)
-                }
+            apps.forEach { app ->
+                app.permissions
+                    .filterNot { it in filterState.hiddenPermissions }
+                    .forEach { permission ->
+                        permissionToAppsMap.getOrPut(permission) { mutableListOf() }.add(app)
+                    }
             }
-        }
 
-        // Convert to PermissionGroup list and sort by number of apps (most used permissions first)
-        permissionToAppsMap.map { (permission, appList) ->
-            PermissionGroup(
-                permissionName = permission,
-                apps = appList.sortedBy { it.name }
-            )
-        }.sortedByDescending { it.apps.size }
-    }
+            permissionToAppsMap.map { (permission, apps) ->
+                PermissionGroup(
+                    permissionName = permission,
+                    apps = apps.sortedBy { it.name }
+                )
+            }.sortedByDescending { it.apps.size }
+        }
 
     suspend fun getAllPermissions(): List<String> = withContext(Dispatchers.IO) {
-        val apps = getInstalledApps()
-        val allPermissions = mutableSetOf<String>()
-
-        apps.forEach { app ->
-            allPermissions.addAll(app.permissions)
-        }
-
-        allPermissions.toList().sorted()
+        getInstalledApps()
+            .flatMap { it.permissions }
+            .toSet()
+            .sorted()
     }
 
     suspend fun getAllApps(): List<AppInfo> = withContext(Dispatchers.IO) {
@@ -68,81 +61,78 @@ class AppRepository(private val context: Context) {
     }
 
     private suspend fun getInstalledApps(): List<AppInfo> = withContext(Dispatchers.IO) {
-        val packageManager = context.packageManager
-        val packages = packageManager.getInstalledPackages(PackageManager.GET_PERMISSIONS)
+        val pm = context.packageManager
+        val packages = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS)
 
-        packages.mapNotNull { packageInfo ->
-            try {
-                val appInfo = packageManager.getApplicationInfo(packageInfo.packageName, 0)
-
-                // 🚫 Exclude system apps
-                if ((appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0) return@mapNotNull null
-
-                val appName = packageManager.getApplicationLabel(appInfo).toString()
-                val appIcon = packageManager.getApplicationIcon(appInfo)
-
-                val grantedPermissions = mutableListOf<String>()
-                val requestedPermissions = packageInfo.requestedPermissions
-                val requestedPermissionsFlags = packageInfo.requestedPermissionsFlags
-
-                if (requestedPermissions != null && requestedPermissionsFlags != null) {
-                    for (i in requestedPermissions.indices) {
-                        val permission = requestedPermissions[i]
-
-                        val isGranted = requestedPermissionsFlags[i] and PackageInfo.REQUESTED_PERMISSION_GRANTED != 0
-
-                        // Only proceed if granted and dangerous
-                        if (isGranted) {
-                            try {
-                                val permissionInfo = packageManager.getPermissionInfo(permission, 0)
-
-                                val isDangerous = permissionInfo.protectionLevel and PermissionInfo.PROTECTION_DANGEROUS != 0
-                                if (isDangerous && permission in importantPermissions) {
-                                    grantedPermissions.add(permission)
-                                }
-                            } catch (_: Exception) {
-                                // Silently skip
-                            }
-                        }
-                    }
-                }
-
-                if (grantedPermissions.isEmpty()) return@mapNotNull null
-
-                val readablePermissions = grantedPermissions.mapNotNull {
-                    getReadablePermissionName(packageManager, it)
-                }
-
-                AppInfo(
-                    name = appName,
-                    packageName = packageInfo.packageName,
-                    icon = appIcon,
-                    permissions = readablePermissions
-                )
-            } catch (e: Exception) {
-                null
-            }
-        }.sortedBy { it.name }
+        packages.mapNotNull { pkg -> createAppInfo(pkg, pm) }
+            .sortedBy { it.name }
     }
 
-    private fun getReadablePermissionName(packageManager: PackageManager, permission: String): String? {
+    private fun createAppInfo(packageInfo: PackageInfo, pm: PackageManager): AppInfo? {
         return try {
-            val permissionInfo = packageManager.getPermissionInfo(permission, 0)
-            val label = permissionInfo.loadLabel(packageManager).toString()
-            if (label.isNotEmpty() && label != permission) {
-                label
-            } else {
-                // Format the permission name to be more readable
-                permission.substringAfterLast(".").replace("_", " ")
-                    .split(" ").joinToString(" ") { word ->
-                        word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-                    }
-            }
-        } catch (e: Exception) {
-            permission.substringAfterLast(".").replace("_", " ")
-                .split(" ").joinToString(" ") { word ->
-                    word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-                }
+            val appInfo = pm.getApplicationInfo(packageInfo.packageName, 0)
+
+            // Skip system apps
+            if (appInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0) return null
+
+            val grantedPermissions = extractGrantedPermissions(packageInfo, pm)
+            if (grantedPermissions.isEmpty()) return null
+
+            val readablePermissions =
+                grantedPermissions.mapNotNull { getReadablePermissionName(pm, it) }
+
+            AppInfo(
+                name = pm.getApplicationLabel(appInfo).toString(),
+                packageName = packageInfo.packageName,
+                icon = pm.getApplicationIcon(appInfo),
+                permissions = readablePermissions
+            )
+        } catch (_: Exception) {
+            null
         }
+    }
+
+    private fun extractGrantedPermissions(pkg: PackageInfo, pm: PackageManager): List<String> {
+        val result = mutableListOf<String>()
+        val permissions = pkg.requestedPermissions ?: return emptyList()
+        val flags = pkg.requestedPermissionsFlags ?: return emptyList()
+
+        for (i in permissions.indices) {
+            val permission = permissions[i]
+            val isGranted = flags[i] and PackageInfo.REQUESTED_PERMISSION_GRANTED != 0
+
+            if (!isGranted) continue
+
+            try {
+                val info = pm.getPermissionInfo(permission, 0)
+                val isDangerous = info.protectionLevel and PermissionInfo.PROTECTION_DANGEROUS != 0
+
+                if (isDangerous && permission in importantPermissions) {
+                    result.add(permission)
+                }
+            } catch (_: Exception) {
+                // Ignore missing permission info
+            }
+        }
+
+        return result
+    }
+
+    private fun getReadablePermissionName(pm: PackageManager, permission: String): String? {
+        return try {
+            val label = pm.getPermissionInfo(permission, 0).loadLabel(pm).toString()
+            if (label.isNotBlank() && label != permission) label else formatPermissionName(
+                permission
+            )
+        } catch (_: Exception) {
+            formatPermissionName(permission)
+        }
+    }
+
+    private fun formatPermissionName(permission: String): String {
+        return permission.substringAfterLast(".")
+            .replace("_", " ")
+            .split(" ")
+            .joinToString(" ") { it.replaceFirstChar(Char::titlecase) }
     }
 }

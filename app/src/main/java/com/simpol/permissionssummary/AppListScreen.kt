@@ -38,83 +38,90 @@ fun AppListScreen(viewModel: AppListViewModel = viewModel()) {
         viewModel.loadPermissionGroups()
     }
 
-    Column {
-        TopAppBar(
-            title = {
-                Column {
-                    Text(
-                        "Permissions & Apps",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    if (filterState.hiddenPermissions.isNotEmpty() || filterState.hiddenApps.isNotEmpty()) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Column {
                         Text(
-                            text = "Filters active: ${filterState.hiddenPermissions.size} permissions, ${filterState.hiddenApps.size} apps hidden",
-                            fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            },
-            actions = {
-                Box {
-                    IconButton(onClick = { showMenu = true }) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "Menu"
-                        )
-                    }
-
-                    DropdownMenu(
-                        expanded = showMenu,
-                        onDismissRequest = { showMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Filter Permissions & Apps") },
-                            onClick = {
-                                showMenu = false
-                                showFilterDialog = true
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.FilterList,
-                                    contentDescription = null
-                                )
-                            }
+                            "Permissions & Apps",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
                         )
                         if (filterState.hiddenPermissions.isNotEmpty() || filterState.hiddenApps.isNotEmpty()) {
-                            DropdownMenuItem(
-                                text = { Text("Clear All Filters") },
-                                onClick = {
-                                    showMenu = false
-                                    viewModel.clearAllFilters()
-                                }
+                            Text(
+                                text = "Filters active: ${filterState.hiddenPermissions.size} permissions, ${filterState.hiddenApps.size} apps hidden",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
-                }
-            }
-        )
+                },
+                actions = {
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "Menu"
+                            )
+                        }
 
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(permissionGroups) { permissionGroup ->
-                    PermissionGroupItem(permissionGroup = permissionGroup)
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Filter Permissions & Apps") },
+                                onClick = {
+                                    showMenu = false
+                                    showFilterDialog = true
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.FilterList,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                            if (filterState.hiddenPermissions.isNotEmpty() || filterState.hiddenApps.isNotEmpty()) {
+                                DropdownMenuItem(
+                                    text = { Text("Clear All Filters") },
+                                    onClick = {
+                                        showMenu = false
+                                        viewModel.clearAllFilters()
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            )
+        },
+        content = { innerPadding ->
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(permissionGroups) { permissionGroup ->
+                        PermissionGroupItem(permissionGroup = permissionGroup)
+                    }
                 }
             }
         }
-    }
+    )
 
     if (showFilterDialog) {
         FilterDialog(
@@ -123,6 +130,7 @@ fun AppListScreen(viewModel: AppListViewModel = viewModel()) {
         )
     }
 }
+
 
 @Composable
 fun FilterDialog(
