@@ -2,6 +2,7 @@ package com.simpol.permissionssummary
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PermissionInfo
 import kotlinx.coroutines.Dispatchers
@@ -79,14 +80,38 @@ class AppRepository(private val context: Context) {
 
                 val appName = packageManager.getApplicationLabel(appInfo).toString()
                 val appIcon = packageManager.getApplicationIcon(appInfo)
-                val permissions = packageInfo.requestedPermissions?.toList() ?: emptyList()
 
-                val filteredPermissions = permissions.filter { it in importantPermissions }
+                val grantedPermissions = mutableListOf<String>()
+                val requestedPermissions = packageInfo.requestedPermissions
+                val requestedPermissionsFlags = packageInfo.requestedPermissionsFlags
 
-                val readablePermissions = filteredPermissions.mapNotNull { permission ->
-                    getReadablePermissionName(packageManager, permission)
+                if (requestedPermissions != null && requestedPermissionsFlags != null) {
+                    for (i in requestedPermissions.indices) {
+                        val permission = requestedPermissions[i]
+
+                        val isGranted = requestedPermissionsFlags[i] and PackageInfo.REQUESTED_PERMISSION_GRANTED != 0
+
+                        // Only proceed if granted and dangerous
+                        if (isGranted) {
+                            try {
+                                val permissionInfo = packageManager.getPermissionInfo(permission, 0)
+
+                                val isDangerous = permissionInfo.protectionLevel and PermissionInfo.PROTECTION_DANGEROUS != 0
+                                if (isDangerous && permission in importantPermissions) {
+                                    grantedPermissions.add(permission)
+                                }
+                            } catch (_: Exception) {
+                                // Silently skip
+                            }
+                        }
+                    }
                 }
 
+                if (grantedPermissions.isEmpty()) return@mapNotNull null
+
+                val readablePermissions = grantedPermissions.mapNotNull {
+                    getReadablePermissionName(packageManager, it)
+                }
 
                 AppInfo(
                     name = appName,
