@@ -7,3 +7,7 @@ data class AppInfo(
     val permissions: List<String>
 )
 
+data class PermissionGroup(
+    val permissionName: String,
+    val apps: List<AppInfo>
+)

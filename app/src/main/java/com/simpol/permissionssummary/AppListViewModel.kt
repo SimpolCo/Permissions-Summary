@@ -11,17 +11,17 @@ import kotlinx.coroutines.launch
 class AppListViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = AppRepository(application)
 
-    private val _apps = MutableStateFlow<List<AppInfo>>(emptyList())
-    val apps: StateFlow<List<AppInfo>> = _apps.asStateFlow()
+    private val _permissionGroups = MutableStateFlow<List<PermissionGroup>>(emptyList())
+    val permissionGroups: StateFlow<List<PermissionGroup>> = _permissionGroups.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    fun loadApps() {
+    fun loadPermissionGroups() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                _apps.value = repository.getInstalledApps()
+                _permissionGroups.value = repository.getPermissionGroups()
             } catch (e: Exception) {
                 // Handle error - you might want to add error state
                 e.printStackTrace()

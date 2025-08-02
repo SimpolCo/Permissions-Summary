@@ -1,6 +1,5 @@
 package com.simpol.permissionssummary
 
-
 import android.content.Context
 import android.content.pm.PackageManager
 import kotlinx.coroutines.Dispatchers
@@ -8,7 +7,27 @@ import kotlinx.coroutines.withContext
 
 class AppRepository(private val context: Context) {
 
-    suspend fun getInstalledApps(): List<AppInfo> = withContext(Dispatchers.IO) {
+    suspend fun getPermissionGroups(): List<PermissionGroup> = withContext(Dispatchers.IO) {
+        val apps = getInstalledApps()
+        val permissionToAppsMap = mutableMapOf<String, MutableList<AppInfo>>()
+
+        // Group apps by permissions
+        apps.forEach { app ->
+            app.permissions.forEach { permission ->
+                permissionToAppsMap.getOrPut(permission) { mutableListOf() }.add(app)
+            }
+        }
+
+        // Convert to PermissionGroup list and sort by number of apps (most used permissions first)
+        permissionToAppsMap.map { (permission, appList) ->
+            PermissionGroup(
+                permissionName = permission,
+                apps = appList.sortedBy { it.name }
+            )
+        }.sortedByDescending { it.apps.size }
+    }
+
+    private suspend fun getInstalledApps(): List<AppInfo> = withContext(Dispatchers.IO) {
         val packageManager = context.packageManager
         val packages = packageManager.getInstalledPackages(PackageManager.GET_PERMISSIONS)
 
