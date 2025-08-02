@@ -11,3 +11,8 @@ data class PermissionGroup(
     val permissionName: String,
     val apps: List<AppInfo>
 )
+
+data class FilterState(
+    val hiddenPermissions: Set<String> = emptySet(),
+    val hiddenApps: Set<String> = emptySet()
+)

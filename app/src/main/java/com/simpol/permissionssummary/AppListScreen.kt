@@ -8,6 +8,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -28,6 +29,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 fun AppListScreen(viewModel: AppListViewModel = viewModel()) {
     val permissionGroups by viewModel.permissionGroups.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val filterState by viewModel.filterState.collectAsState()
+    var showMenu by remember { mutableStateOf(false) }
+    var showFilterDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadPermissionGroups()
@@ -36,11 +40,58 @@ fun AppListScreen(viewModel: AppListViewModel = viewModel()) {
     Column {
         TopAppBar(
             title = {
-                Text(
-                    "Permissions & Apps",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Column {
+                    Text(
+                        "Permissions & Apps",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (filterState.hiddenPermissions.isNotEmpty() || filterState.hiddenApps.isNotEmpty()) {
+                        Text(
+                            text = "Filters active: ${filterState.hiddenPermissions.size} permissions, ${filterState.hiddenApps.size} apps hidden",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            },
+            actions = {
+                Box {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Menu"
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Filter Permissions & Apps") },
+                            onClick = {
+                                showMenu = false
+                                showFilterDialog = true
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.FilterList,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                        if (filterState.hiddenPermissions.isNotEmpty() || filterState.hiddenApps.isNotEmpty()) {
+                            DropdownMenuItem(
+                                text = { Text("Clear All Filters") },
+                                onClick = {
+                                    showMenu = false
+                                    viewModel.clearAllFilters()
+                                }
+                            )
+                        }
+                    }
+                }
             }
         )
 
@@ -63,6 +114,155 @@ fun AppListScreen(viewModel: AppListViewModel = viewModel()) {
             }
         }
     }
+
+    if (showFilterDialog) {
+        FilterDialog(
+            viewModel = viewModel,
+            onDismiss = { showFilterDialog = false }
+        )
+    }
+}
+
+@Composable
+fun FilterDialog(
+    viewModel: AppListViewModel,
+    onDismiss: () -> Unit
+) {
+    val allPermissions by viewModel.allPermissions.collectAsState()
+    val allApps by viewModel.allApps.collectAsState()
+    val filterState by viewModel.filterState.collectAsState()
+    var selectedTab by remember { mutableStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadAllPermissionsAndApps()
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Filter Content") },
+        text = {
+            Column {
+                TabRow(selectedTabIndex = selectedTab) {
+                    Tab(
+                        selected = selectedTab == 0,
+                        onClick = { selectedTab = 0 },
+                        text = { Text("Permissions") }
+                    )
+                    Tab(
+                        selected = selectedTab == 1,
+                        onClick = { selectedTab = 1 },
+                        text = { Text("Apps") }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                when (selectedTab) {
+                    0 -> {
+                        Text(
+                            "Hide permissions you don't care about:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        LazyColumn(
+                            modifier = Modifier.height(300.dp)
+                        ) {
+                            items(allPermissions) { permission ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Checkbox(
+                                        checked = permission in filterState.hiddenPermissions,
+                                        onCheckedChange = { isChecked ->
+                                            if (isChecked) {
+                                                viewModel.hidePermission(permission)
+                                            } else {
+                                                viewModel.showPermission(permission)
+                                            }
+                                        }
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = permission,
+                                        fontSize = 13.sp,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    1 -> {
+                        Text(
+                            "Hide apps you don't care about:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        LazyColumn(
+                            modifier = Modifier.height(300.dp)
+                        ) {
+                            items(allApps) { app ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Checkbox(
+                                        checked = app.packageName in filterState.hiddenApps,
+                                        onCheckedChange = { isChecked ->
+                                            if (isChecked) {
+                                                viewModel.hideApp(app.packageName)
+                                            } else {
+                                                viewModel.showApp(app.packageName)
+                                            }
+                                        }
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    app.icon?.let { drawable ->
+                                        Image(
+                                            bitmap = drawable.toBitmap(32, 32).asImageBitmap(),
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .clip(RoundedCornerShape(4.dp))
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                    }
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = app.name,
+                                            fontSize = 13.sp,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Text(
+                                            text = app.packageName,
+                                            fontSize = 10.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Done")
+            }
+        }
+    )
 }
 
 @Composable

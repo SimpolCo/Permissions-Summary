@@ -2,19 +2,25 @@ package com.simpol.permissionssummary
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.pm.PermissionInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class AppRepository(private val context: Context) {
 
-    suspend fun getPermissionGroups(): List<PermissionGroup> = withContext(Dispatchers.IO) {
-        val apps = getInstalledApps()
+    suspend fun getPermissionGroups(filterState: FilterState = FilterState()): List<PermissionGroup> = withContext(Dispatchers.IO) {
+        val apps = getInstalledApps().filter { app ->
+            app.packageName !in filterState.hiddenApps
+        }
+
         val permissionToAppsMap = mutableMapOf<String, MutableList<AppInfo>>()
 
         // Group apps by permissions
         apps.forEach { app ->
             app.permissions.forEach { permission ->
-                permissionToAppsMap.getOrPut(permission) { mutableListOf() }.add(app)
+                if (permission !in filterState.hiddenPermissions) {
+                    permissionToAppsMap.getOrPut(permission) { mutableListOf() }.add(app)
+                }
             }
         }
 
@@ -25,6 +31,21 @@ class AppRepository(private val context: Context) {
                 apps = appList.sortedBy { it.name }
             )
         }.sortedByDescending { it.apps.size }
+    }
+
+    suspend fun getAllPermissions(): List<String> = withContext(Dispatchers.IO) {
+        val apps = getInstalledApps()
+        val allPermissions = mutableSetOf<String>()
+
+        apps.forEach { app ->
+            allPermissions.addAll(app.permissions)
+        }
+
+        allPermissions.toList().sorted()
+    }
+
+    suspend fun getAllApps(): List<AppInfo> = withContext(Dispatchers.IO) {
+        getInstalledApps()
     }
 
     private suspend fun getInstalledApps(): List<AppInfo> = withContext(Dispatchers.IO) {
@@ -48,7 +69,7 @@ class AppRepository(private val context: Context) {
                     icon = appIcon,
                     permissions = readablePermissions
                 )
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 null
             }
         }.sortedBy { it.name }
@@ -67,7 +88,7 @@ class AppRepository(private val context: Context) {
                         word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
                     }
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             permission.substringAfterLast(".").replace("_", " ")
                 .split(" ").joinToString(" ") { word ->
                     word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
