@@ -1,12 +1,30 @@
 package com.simpol.permissionssummary
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.pm.PermissionInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class AppRepository(private val context: Context) {
+    private val importantPermissions = setOf(
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS",
+        "android.permission.READ_PHONE_STATE",
+        "android.permission.CALL_PHONE",
+        "android.permission.READ_SMS",
+        "android.permission.RECEIVE_SMS",
+        "android.permission.SEND_SMS",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.POST_NOTIFICATIONS"
+    )
+
 
     suspend fun getPermissionGroups(filterState: FilterState = FilterState()): List<PermissionGroup> = withContext(Dispatchers.IO) {
         val apps = getInstalledApps().filter { app ->
@@ -55,13 +73,20 @@ class AppRepository(private val context: Context) {
         packages.mapNotNull { packageInfo ->
             try {
                 val appInfo = packageManager.getApplicationInfo(packageInfo.packageName, 0)
+
+                // 🚫 Exclude system apps
+                if ((appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0) return@mapNotNull null
+
                 val appName = packageManager.getApplicationLabel(appInfo).toString()
                 val appIcon = packageManager.getApplicationIcon(appInfo)
-
                 val permissions = packageInfo.requestedPermissions?.toList() ?: emptyList()
-                val readablePermissions = permissions.mapNotNull { permission ->
+
+                val filteredPermissions = permissions.filter { it in importantPermissions }
+
+                val readablePermissions = filteredPermissions.mapNotNull { permission ->
                     getReadablePermissionName(packageManager, permission)
                 }
+
 
                 AppInfo(
                     name = appName,

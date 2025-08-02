@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.window.Dialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -137,11 +138,22 @@ fun FilterDialog(
         viewModel.loadAllPermissionsAndApps()
     }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Filter Content") },
-        text = {
-            Column {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(),
+            shape = RoundedCornerShape(0.dp),
+            tonalElevation = 4.dp,
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    "Filter Content",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
                 TabRow(selectedTabIndex = selectedTab) {
                     Tab(
                         selected = selectedTab == 0,
@@ -155,19 +167,24 @@ fun FilterDialog(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 when (selectedTab) {
                     0 -> {
-                        Text(
-                            "Hide permissions you don't care about:",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            TextButton(onClick = {
+                                allPermissions.forEach { viewModel.hidePermission(it) }
+                            }) { Text("Select All") }
+                            TextButton(onClick = {
+                                allPermissions.forEach { viewModel.showPermission(it) }
+                            }) { Text("Clear All") }
+                        }
 
                         LazyColumn(
-                            modifier = Modifier.height(300.dp)
+                            modifier = Modifier.weight(1f)
                         ) {
                             items(allPermissions) { permission ->
                                 Row(
@@ -179,11 +196,8 @@ fun FilterDialog(
                                     Checkbox(
                                         checked = permission in filterState.hiddenPermissions,
                                         onCheckedChange = { isChecked ->
-                                            if (isChecked) {
-                                                viewModel.hidePermission(permission)
-                                            } else {
-                                                viewModel.showPermission(permission)
-                                            }
+                                            if (isChecked) viewModel.hidePermission(permission)
+                                            else viewModel.showPermission(permission)
                                         }
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
@@ -196,16 +210,22 @@ fun FilterDialog(
                             }
                         }
                     }
+
                     1 -> {
-                        Text(
-                            "Hide apps you don't care about:",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            TextButton(onClick = {
+                                allApps.forEach { viewModel.hideApp(it.packageName) }
+                            }) { Text("Select All") }
+                            TextButton(onClick = {
+                                allApps.forEach { viewModel.showApp(it.packageName) }
+                            }) { Text("Clear All") }
+                        }
 
                         LazyColumn(
-                            modifier = Modifier.height(300.dp)
+                            modifier = Modifier.weight(1f)
                         ) {
                             items(allApps) { app ->
                                 Row(
@@ -217,11 +237,8 @@ fun FilterDialog(
                                     Checkbox(
                                         checked = app.packageName in filterState.hiddenApps,
                                         onCheckedChange = { isChecked ->
-                                            if (isChecked) {
-                                                viewModel.hideApp(app.packageName)
-                                            } else {
-                                                viewModel.showApp(app.packageName)
-                                            }
+                                            if (isChecked) viewModel.hideApp(app.packageName)
+                                            else viewModel.showApp(app.packageName)
                                         }
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
@@ -255,14 +272,20 @@ fun FilterDialog(
                         }
                     }
                 }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Done")
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Done")
+                    }
+                }
             }
         }
-    )
+    }
 }
 
 @Composable

@@ -24,6 +24,8 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     private val _allApps = MutableStateFlow<List<AppInfo>>(emptyList())
     val allApps: StateFlow<List<AppInfo>> = _allApps.asStateFlow()
 
+    private val prefs = FilterPreferencesManager(application)
+
     fun loadPermissionGroups() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -48,36 +50,61 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun hidePermission(permission: String) {
-        _filterState.value = _filterState.value.copy(
-            hiddenPermissions = _filterState.value.hiddenPermissions + permission
-        )
+
+    init {
+        viewModelScope.launch {
+            prefs.filterStateFlow.collect { savedState ->
+                _filterState.value = savedState
+                loadPermissionGroups()
+            }
+        }
+    }
+
+    private fun updateAndPersistFilterState(newState: FilterState) {
+        _filterState.value = newState
+        viewModelScope.launch {
+            prefs.saveFilterState(newState)
+        }
         loadPermissionGroups()
+    }
+
+    fun hidePermission(permission: String) {
+        updateAndPersistFilterState(
+            _filterState.value.copy(
+                hiddenPermissions = _filterState.value.hiddenPermissions + permission
+            )
+        )
     }
 
     fun showPermission(permission: String) {
-        _filterState.value = _filterState.value.copy(
-            hiddenPermissions = _filterState.value.hiddenPermissions - permission
+        updateAndPersistFilterState(
+            _filterState.value.copy(
+                hiddenPermissions = _filterState.value.hiddenPermissions - permission
+            )
         )
-        loadPermissionGroups()
     }
 
     fun hideApp(packageName: String) {
-        _filterState.value = _filterState.value.copy(
-            hiddenApps = _filterState.value.hiddenApps + packageName
+        updateAndPersistFilterState(
+            _filterState.value.copy(
+                hiddenApps = _filterState.value.hiddenApps + packageName
+            )
         )
-        loadPermissionGroups()
     }
 
     fun showApp(packageName: String) {
-        _filterState.value = _filterState.value.copy(
-            hiddenApps = _filterState.value.hiddenApps - packageName
+        updateAndPersistFilterState(
+            _filterState.value.copy(
+                hiddenApps = _filterState.value.hiddenApps - packageName
+            )
         )
-        loadPermissionGroups()
     }
 
     fun clearAllFilters() {
-        _filterState.value = FilterState()
-        loadPermissionGroups()
+        val cleared = FilterState()
+        updateAndPersistFilterState(cleared)
+        viewModelScope.launch {
+            prefs.clearFilters()
+        }
     }
 }
