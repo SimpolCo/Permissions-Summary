@@ -7,8 +7,7 @@
 **Permission Summary** is an Android app that gives you a clear, organized overview of which apps
 have access to sensitive permissions on your device.
 
-> ⚠️ This app only lists **dangerous permissions** and only for **non-system (user-installed) apps
-**.
+> ⚠️ This app only lists **dangerous permissions** and only for **non-system (user-installed) apps**.
 
 Built with Jetpack Compose, Material 3, and modern Android architecture.
 
