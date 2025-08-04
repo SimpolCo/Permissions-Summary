@@ -4,6 +4,21 @@
   <img src="https://raw.githubusercontent.com/SimpolCo/Permissions-Summary/refs/heads/main/app/src/main/res/icon.png" width="250"/>
 </p>
 
+<p align="center">
+  <a href="https://github.com/SimpolCo/Permissions-Summary/releases">
+    <img src="https://img.shields.io/github/v/release/SimpolCo/Permissions-Summary?label=GitHub%20Release&logo=github" alt="GitHub Release">
+  </a>
+  <a href="https://apt.izzysoft.de/fdroid/index/apk/com.simpol.permissionssummary">
+    <img src="https://img.shields.io/badge/IzzyOnDroid-Link-blue?logo=android" alt="IzzyOnDroid">
+  </a>
+  <a href="https://f-droid.org/packages/com.simpol.permissionssummary/">
+    <img src="https://img.shields.io/f-droid/v/com.simpol.permissionssummary?label=F-Droid&logo=f-droid" alt="F-Droid">
+  </a>
+  <a href="https://shields.rbtlog.dev/com.simpol.permissionssummary">
+    <img src="https://shields.rbtlog.dev/simple/com.simpol.permissionssummary" alt="RB shield">
+  </a>
+</p>
+
 **Permission Summary** is an Android app that gives you a clear, organized overview of which apps
 have access to sensitive permissions on your device.
 
@@ -42,7 +57,8 @@ release.)*
 You can download the latest version:
 
 - 👉 [GitHub Releases](https://github.com/simpolco/permissions-summary/releases)
-- 📦 [F-Droid (Coming soon)](https://f-droid.org/)
+- 📥 [IzzyOnDroid](https://apt.izzysoft.de/packages/com.simpol.permissionssummary)
+- 📦 [F-Droid (Coming soon)](https://f-droid.org/packages/com.simpol.permissionssummary/)
 
 ---
 
