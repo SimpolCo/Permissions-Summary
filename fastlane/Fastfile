@@ -1,38 +1,27 @@
-# This file contains the fastlane.tools configuration
-# You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
-
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
-
 default_platform(:android)
 
 platform :android do
-  desc "Runs all the tests"
-  lane :test do
-    gradle(task: "test")
-  end
-
-  desc "Submit a new Beta Build to Crashlytics Beta"
-  lane :beta do
+  desc "Build and sign APK for F-Droid"
+  lane :fdroid_release do
     gradle(task: "clean assembleRelease")
-    crashlytics
-  
-    # sh "your_script.sh"
-    # You can also use other beta testing services here
-  end
 
-  desc "Deploy a new version to the Google Play"
-  lane :deploy do
-    gradle(task: "clean assembleRelease")
-    upload_to_play_store
+    # Optional: if using custom keystore
+    # Ensure you’ve set these via environment variables or .env file
+    sign_apk(
+      keystore_path: ENV["KEYSTORE_PATH"],
+      keystore_password: ENV["KEYSTORE_PASSWORD"],
+      key_alias: ENV["KEY_ALIAS"],
+      key_password: ENV["KEY_PASSWORD"],
+      apk_path: Dir["app/build/outputs/apk/release/app-release-unsigned.apk"].first
+    )
+
+    # Optional: copy to an output directory
+    sh "mkdir -p release"
+    sh "cp app/build/outputs/apk/release/app-release-signed.apk release/"
+
+    # Optional: tag git
+    # tag_version(version_name: get_version_name, prefix: "v")
+
+    UI.success("✅ APK ready for F-Droid.")
   end
 end
