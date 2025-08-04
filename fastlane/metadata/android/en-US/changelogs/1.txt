@@ -1,0 +1,3 @@
+Initial release of Permissions Summary.
+- Shows app permissions at a glance
+- Simple and privacy-focused
