@@ -22,7 +22,8 @@
 **Permission Summary** is an Android app that gives you a clear, organized overview of which apps
 have access to sensitive permissions on your device.
 
-> ⚠️ This app only lists **dangerous permissions** and only for **non-system (user-installed) apps**.
+> ⚠️ This app only lists **dangerous permissions** and only for **non-system (user-installed) apps
+**.
 
 Built with Jetpack Compose, Material 3, and modern Android architecture.
 
@@ -54,11 +55,17 @@ release.)*
 
 ## 📦 Download
 
-You can download the latest version:
-
-- 👉 [GitHub Releases](https://github.com/simpolco/permissions-summary/releases)
-- 📥 [IzzyOnDroid](https://apt.izzysoft.de/packages/com.simpol.permissionssummary)
-- 📦 [F-Droid (Coming soon)](https://f-droid.org/packages/com.simpol.permissionssummary/)
+<p align="center">
+  <a href="https://f-droid.org/packages/com.simpol.permissionssummary/">
+    <img src="assets/fdroid.png" alt="Get it on F-Droid" height="80">
+  </a>
+  <a href="https://apt.izzysoft.de/fdroid/index/apk/com.simpol.permissionssummary">
+    <img src="assets/izzyondroid.png" alt="Get it on IzzyOnDroid" height="80">
+  </a>
+  <a href="https://github.com/SimpolCo/Permissions-Summary/releases">
+    <img src="assets/github.png" alt="Get it on GitHub" height="80">
+  </a>
+</p>
 
 ---
 
