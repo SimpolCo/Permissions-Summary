@@ -97,16 +97,6 @@ Permission Summary checks for the following **dangerous permissions**:
 
 ---
 
-## 📂 Tech Stack
-
-- Jetpack Compose
-- Kotlin
-- ViewModel + StateFlow
-- DataStore (for future settings)
-- Android PackageManager APIs
-
----
-
 ## 📝 License
 
 This project is licensed under the [GNU GPLv3](LICENSE).
