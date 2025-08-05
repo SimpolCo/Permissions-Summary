@@ -17,13 +17,14 @@
   <a href="https://shields.rbtlog.dev/com.simpol.permissionssummary">
     <img src="https://shields.rbtlog.dev/simple/com.simpol.permissionssummary" alt="RB shield">
   </a>
+
+  <img src="https://img.shields.io/github/downloads/simpolco/permissions-summary/total" alt="Number of Downloads">
 </p>
 
 **Permission Summary** is an Android app that gives you a clear, organized overview of which apps
 have access to sensitive permissions on your device.
 
-> ⚠️ This app only lists **dangerous permissions** and only for **non-system (user-installed) apps
-**.
+> ⚠️ This app only lists **dangerous permissions** and only for **non-system (user-installed) apps**.
 
 Built with Jetpack Compose, Material 3, and modern Android architecture.
 
@@ -47,9 +48,6 @@ Built with Jetpack Compose, Material 3, and modern Android architecture.
   <img src="https://raw.githubusercontent.com/SimpolCo/Permissions-Summary/refs/heads/main/assets/2.jpg" width="270" />
   <img src="https://raw.githubusercontent.com/SimpolCo/Permissions-Summary/refs/heads/main/assets/3.jpg" width="270" />
 </p>
-
-> *(Replace the URLs above with actual uploaded images in your repo's `assets` or attach them to a
-release.)*
 
 ---
 
