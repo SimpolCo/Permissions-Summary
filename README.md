@@ -29,6 +29,30 @@ Built with Jetpack Compose, Material 3, and modern Android architecture.
 
 ---
 
+## 🔐 Permissions Checked
+
+Permission Summary checks for the following **dangerous permissions**:
+
+- **Camera**: Access to your device's camera  
+- **Microphone**: Record audio  
+- **Location**: Fine & coarse location (GPS, Wi-Fi, etc.)  
+- **Storage**: Access to files, media, photos, or music  
+- **Contacts**: Read, write, or access contact data and accounts  
+- **Calendar**: Read or write calendar events  
+- **Phone / Call Log**: Read phone state, call logs, answer calls, etc.  
+- **SMS**: Send or receive SMS, MMS, and WAP push messages  
+- **Body Sensors**: Access data from heart rate, step counter, etc.
+
+> It intentionally **ignores non-dangerous permissions** like:
+> - `POST_NOTIFICATIONS`
+> - `INTERNET`
+> - `BLUETOOTH`
+> - `ACCESS_NETWORK_STATE`
+> - `CAR_MODE`  
+> These are not considered privacy-sensitive by Android and are excluded to reduce noise.
+
+---
+
 ## ✨ Features
 
 - 🔐 **Grouped by Permission** — Instantly see which apps request access to camera, mic, contacts, etc.
@@ -62,30 +86,6 @@ Built with Jetpack Compose, Material 3, and modern Android architecture.
     <img src="assets/github.png" alt="Get it on GitHub" height="80">
   </a>
 </p>
-
----
-
-## 🔐 Permissions Checked
-
-Permission Summary checks for the following **dangerous permissions**:
-
-- **Camera**: Access to your device's camera  
-- **Microphone**: Record audio  
-- **Location**: Fine & coarse location (GPS, Wi-Fi, etc.)  
-- **Storage**: Access to files, media, photos, or music  
-- **Contacts**: Read, write, or access contact data and accounts  
-- **Calendar**: Read or write calendar events  
-- **Phone / Call Log**: Read phone state, call logs, answer calls, etc.  
-- **SMS**: Send or receive SMS, MMS, and WAP push messages  
-- **Body Sensors**: Access data from heart rate, step counter, etc.
-
-> It intentionally **ignores non-dangerous permissions** like:
-> - `POST_NOTIFICATIONS`
-> - `INTERNET`
-> - `BLUETOOTH`
-> - `ACCESS_NETWORK_STATE`
-> - `CAR_MODE`  
-> These are not considered privacy-sensitive by Android and are excluded to reduce noise.
 
 ---
 
