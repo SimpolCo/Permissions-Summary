@@ -17,6 +17,8 @@
   <a href="https://shields.rbtlog.dev/com.simpol.permissionssummary">
     <img src="https://shields.rbtlog.dev/simple/com.simpol.permissionssummary" alt="RB shield">
   </a>
+
+  <img src="https://img.shields.io/github/downloads/simpolco/permissions-summary/total" alt="Number of Downloads">
 </p>
 
 **Permission Summary** is an Android app that gives you a clear, organized overview of which apps
