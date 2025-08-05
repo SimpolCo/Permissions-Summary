@@ -76,6 +76,17 @@ Built with Jetpack Compose, Material 3, and modern Android architecture.
 
 ---
 
+## 📋 Backlog / Planned Features
+
+Here are some ideas planned for future releases:
+
+- ✅ **Filter toggle for system apps**  
+- ✅ **Advanced mode to show all (normal + dangerous) permissions**  
+- 🔔 **Permission change notifications** — get alerted when an app gains a new permission  
+- 🔍 **Filter apps by permission name or type**  
+
+---
+
 ## 📂 Tech Stack
 
 - Jetpack Compose
