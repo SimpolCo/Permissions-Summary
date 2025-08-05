@@ -21,10 +21,9 @@
   <img src="https://img.shields.io/github/downloads/simpolco/permissions-summary/total" alt="Number of Downloads">
 </p>
 
-**Permission Summary** is an Android app that gives you a clear, organized overview of which apps
-have access to sensitive permissions on your device.
+**Permission Summary** is a lightweight, open source Android app that helps you quickly check which apps have access to sensitive permissions on your device — in just a few seconds.
 
-> ⚠️ This app only lists **dangerous permissions** and only for **non-system (user-installed) apps**.
+> ⚠️ The app only lists **user-installed apps** and only those with **dangerous permissions**. These are the permissions Android classifies as potentially privacy-invasive.
 
 Built with Jetpack Compose, Material 3, and modern Android architecture.
 
@@ -32,12 +31,11 @@ Built with Jetpack Compose, Material 3, and modern Android architecture.
 
 ## ✨ Features
 
-- 🔐 **Grouped by Permission** — Quickly see which apps request sensitive access like camera,
-  location, or storage.
-- 🧼 **User Apps Only** — No system bloat or irrelevant services cluttering the list.
-- 🚫 **Only Dangerous Permissions** — Skips normal permissions and focuses on what matters most.
+- 🔐 **Grouped by Permission** — Instantly see which apps request access to camera, mic, contacts, etc.
+- 🧼 **User Apps Only** — Filters out system apps and background clutter.
+- 🚫 **Focus on Privacy** — Shows only dangerous permissions and skips non-sensitive ones like internet or notifications.
 - 📱 **Modern UI** — Built entirely with Jetpack Compose and Material 3.
-- ⚡ **Fast & Lightweight** — Everything runs fully on-device.
+- ⚡ **Fast & Lightweight** — Optimized for quick, offline use. No trackers, no nonsense.
 
 ---
 
@@ -67,23 +65,35 @@ Built with Jetpack Compose, Material 3, and modern Android architecture.
 
 ---
 
+## 🔐 Permissions Checked
+
+Permission Summary checks for the following **dangerous permissions**:
+
+- **Camera**: Access to your device's camera  
+- **Microphone**: Record audio  
+- **Location**: Fine & coarse location (GPS, Wi-Fi, etc.)  
+- **Storage**: Access to files, media, photos, or music  
+- **Contacts**: Read, write, or access contact data and accounts  
+- **Calendar**: Read or write calendar events  
+- **Phone / Call Log**: Read phone state, call logs, answer calls, etc.  
+- **SMS**: Send or receive SMS, MMS, and WAP push messages  
+- **Body Sensors**: Access data from heart rate, step counter, etc.
+
+> It intentionally **ignores non-dangerous permissions** like:
+> - `POST_NOTIFICATIONS`
+> - `INTERNET`
+> - `BLUETOOTH`
+> - `ACCESS_NETWORK_STATE`
+> - `CAR_MODE`  
+> These are not considered privacy-sensitive by Android and are excluded to reduce noise.
+
+---
+
 ## 🔐 Permissions Used by This App
 
 - `QUERY_ALL_PACKAGES` — Required to list installed apps and their permissions.
 
-> This app **does not collect or share any personal data**. All analysis happens **on-device** and
-> offline.
-
----
-
-## 📋 Backlog / Planned Features
-
-Here are some ideas planned for future releases:
-
-- [ ] Filter toggle for system apps
-- [ ] Advanced mode to show all (normal + dangerous) permissions
-- [ ] Permission change alerts
-- [ ] Custom filters for apps & permissions
+> This app **does not collect or share any personal data**. Everything runs **locally on-device** and offline.
 
 ---
 
@@ -92,8 +102,8 @@ Here are some ideas planned for future releases:
 - Jetpack Compose
 - Kotlin
 - ViewModel + StateFlow
-- DataStore (for potential future settings)
-- PackageManager APIs
+- DataStore (for future settings)
+- Android PackageManager APIs
 
 ---
 
