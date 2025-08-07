@@ -43,6 +43,8 @@ Permission Summary checks for the following **dangerous permissions**:
 - **SMS**: Send or receive SMS, MMS, and WAP push messages  
 - **Body Sensors**: Access data from heart rate, step counter, etc.
 
+> These are based on [Android’s official list of “dangerous permissions”](https://developer.android.com/guide/topics/permissions/overview#dangerous_permissions), which require runtime approval due to their potential privacy impact.
+
 > It intentionally **ignores non-dangerous permissions** like:
 > - `POST_NOTIFICATIONS`
 > - `INTERNET`
