@@ -9,8 +9,7 @@ platform :android do
     aligned_apk = File.expand_path("../app/build/outputs/apk/release/app-release-aligned.apk")
     signed_apk = File.expand_path("../app/build/outputs/apk/release/app-release-signed.apk")
 
-    # Wait to avoid zipalign error due to race condition
-    sleep(1)
+    sleep(1) # avoid zipalign race condition
 
     unless File.exist?(unsigned_apk)
       UI.user_error!("❌ APK not found at: #{unsigned_apk}")
@@ -24,6 +23,7 @@ platform :android do
     keystore_password = ENV["KEYSTORE_PASSWORD"]
     key_password = ENV["KEY_PASSWORD"]
 
+    # Sign the APK
     sh "apksigner sign " \
        "--ks #{keystore_path} " \
        "--ks-key-alias #{key_alias} " \
@@ -31,27 +31,23 @@ platform :android do
        "--key-pass pass:#{key_password} " \
        "--out #{signed_apk} #{aligned_apk}"
 
-
-    # Optional: verify signature
+    # Verify signature
     sh("apksigner verify #{signed_apk}")
 
-    # Calculate SHA256 for F-Droid
+    # Get versionName from Gradle
+    version_name = sh("grep versionName app/build.gradle | awk '{print $2}'").strip.tr('"', '')
+
+    # Calculate SHA256
     require 'digest'
     sha256 = Digest::SHA256.file(signed_apk).hexdigest
     puts("🔐 SHA256: #{sha256}")
 
-    # Optional: append to F-Droid metadata
-    metadata_path = "metadata/com.example.app.txt" # Replace with actual
-    if File.exist?(metadata_path)
-      File.open(metadata_path, "a") do |file|
-        file.puts("Distribution SHA256: #{sha256}")
-      end
-    end
-
-    # Organize output
+    # Output to release folder with new name
     sh("mkdir -p release")
-    sh("cp #{signed_apk} release/")
+    final_apk_name = "Permissions Summary V#{version_name}.apk"
+    final_apk_path = File.join("release", final_apk_name)
+    sh("cp #{signed_apk} \"#{final_apk_path}\"")
 
-    UI.success("✅ F-Droid APK built and signed: release/app-release-signed.apk")
+    UI.success("✅ F-Droid APK built and signed: #{final_apk_path}")
   end
 end
