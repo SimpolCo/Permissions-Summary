@@ -35,7 +35,7 @@ platform :android do
     sh("apksigner verify #{signed_apk}")
 
     # Get versionName from Gradle
-    version_name = gradle(task: "printVersionName", print_command: false, quiet: true).strip
+    version_name = gradle(task: "printVersionName", print_command: false).strip
 
     # Calculate SHA256
     require 'digest'
