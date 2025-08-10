@@ -34,9 +34,6 @@ platform :android do
     # Verify signature
     sh("apksigner verify #{signed_apk}")
 
-    # Get versionName from Gradle
-    version_name = gradle(task: "printVersionName", print_command: false).strip
-
     # Calculate SHA256
     require 'digest'
     sha256 = Digest::SHA256.file(signed_apk).hexdigest
@@ -44,7 +41,7 @@ platform :android do
 
     # Output to release folder with new name
     sh("mkdir -p release")
-    final_apk_name = "Permissions Summary V#{version_name}.apk"
+    final_apk_name = "Permissions Summary.apk"
     final_apk_path = File.join("release", final_apk_name)
     sh("cp #{signed_apk} \"#{final_apk_path}\"")
 
