@@ -200,6 +200,10 @@ class AppRepository(private val context: Context) {
         // Temporary map for building group data
         val groupMap = mutableMapOf<String, MutableList<Pair<App, String>>>()
 
+        val darkMode = (context.resources.configuration.uiMode
+                and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                android.content.res.Configuration.UI_MODE_NIGHT_YES
+
         for (app in apps) {
             for (perm in app.permissions) {
                 val group = perm // Already grouped
@@ -210,6 +214,13 @@ class AppRepository(private val context: Context) {
         return groupMap.mapNotNull { (groupName, appPermPairs) ->
             val iconResId = groupIcons[groupName] ?: return@mapNotNull null
             val groupIcon = context.getDrawable(iconResId) ?: return@mapNotNull null
+
+            if (darkMode) {
+                groupIcon.setTint(android.graphics.Color.WHITE)
+            } else {
+                groupIcon.setTint(android.graphics.Color.BLACK)
+            }
+
             val appsInGroup = appPermPairs.map { it.first }.distinct()
 
             PermissionsGroup(
