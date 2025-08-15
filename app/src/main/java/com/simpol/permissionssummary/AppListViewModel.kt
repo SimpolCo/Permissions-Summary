@@ -28,10 +28,13 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     /** Loads all unique permissions and installed apps */
     fun loadPermissionGroups() {
         viewModelScope.launch {
+            _isLoading.value = true
             try {
                 _permissionsGroups.value = repository.getPermissionGroups()
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                _isLoading.value = false
             }
         }
     }
