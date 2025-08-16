@@ -12,8 +12,8 @@ android {
         applicationId = "com.simpol.permissionssummary"
         minSdk = 28
         targetSdk = 36
-        versionCode = 111
-        versionName = "1.1.1"
+        versionCode = 121
+        versionName = "1.2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
