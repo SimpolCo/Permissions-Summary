@@ -47,4 +47,62 @@ platform :android do
 
     UI.success("✅ F-Droid APK built and signed: #{final_apk_path}")
   end
+
+  desc "Build and sign release APK with custom output path and name"
+  lane :release do |options|
+    # === Parameters ===
+    output_path = options[:path] || "release"
+    output_name = options[:apk_name] || "Permissions Summary.apk"
+
+    gradle(task: "clean assembleRelease")
+
+    unsigned_apk = File.expand_path("../app/build/outputs/apk/release/app-release-unsigned.apk")
+    aligned_apk = File.expand_path("../app/build/outputs/apk/release/app-release-aligned.apk")
+    signed_apk = File.expand_path("../app/build/outputs/apk/release/app-release-signed.apk")
+
+    sleep(1) # avoid zipalign race condition
+
+    unless File.exist?(unsigned_apk)
+      UI.user_error!("❌ APK not found at: #{unsigned_apk}")
+    end
+
+    # Align the APK
+    sh("zipalign -v -p 4 #{unsigned_apk} #{aligned_apk}")
+
+    keystore_path = File.expand_path(ENV["KEYSTORE_PATH"])
+    key_alias = ENV["KEY_ALIAS"]
+    keystore_password = ENV["KEYSTORE_PASSWORD"]
+    key_password = ENV["KEY_PASSWORD"]
+
+    # Sign the APK
+    sh "apksigner sign " \
+       "--ks #{keystore_path} " \
+       "--ks-key-alias #{key_alias} " \
+       "--ks-pass pass:#{keystore_password} " \
+       "--key-pass pass:#{key_password} " \
+       "--out #{signed_apk} #{aligned_apk}"
+
+    # Verify signature
+    sh("apksigner verify #{signed_apk}")
+
+    # Calculate SHA256
+    require 'digest'
+    sha256 = Digest::SHA256.file(signed_apk).hexdigest
+    puts("🔐 SHA256: #{sha256}")
+
+    # Expand ~ and build full target path
+    target_path = File.expand_path(File.join(output_path, output_name))
+
+    # Create folder if it doesn't exist
+    sh("mkdir -p #{File.dirname(target_path)}")
+
+    # Copy signed APK with custom name
+    sh("cp #{signed_apk} \"#{target_path}\"")
+
+    UI.success("✅ Release APK built and signed: #{target_path}")
+  end
 end
+
+
+# For Example Run with :
+# $ bundle exec fastlane android release path:"~/Desktop" apk_name:"Permissions Summary v1.1.1.apk"
